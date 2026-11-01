@@ -121,9 +121,9 @@ def verify_seed(lock: dict, root: Path) -> Path:
 
 
 def download_locked(lock: dict, cache: Path) -> int:
+    """Download external upstreams; the seed is verified locally by the CLI."""
     count = 0
-    seed = dict(lock["seed"], name="seed")
-    for source in [dict(seed, files=[seed]), *lock["upstreams"]]:
+    for source in lock["upstreams"]:
         for entry in source["files"]:
             locked_bytes(source, entry, cache)
             count += 1
@@ -225,11 +225,12 @@ def main(argv: list[str] | None = None) -> int:
     try:
         lock = load_lock(args.lock)
         result = {}
-        if args.verify_seed or args.check:
+        if args.verify_seed or args.download or args.check:
             seed_path = verify_seed(lock, args.lock.parent)
             result["seed_verified"] = str(seed_path)
         if args.download:
             result["locked_files_verified"] = download_locked(lock, args.cache)
+            result["verified_pins"] = result["locked_files_verified"] + 1
         if args.check:
             report, candidate, contents = check_upstreams(lock, args.cache, seed_path.read_bytes())
             result["upstream_check"] = report
@@ -245,7 +246,7 @@ def main(argv: list[str] | None = None) -> int:
         if "seed_verified" in result:
             print("Vendored seed verified")
         if "locked_files_verified" in result:
-            print(f"Verified {result['locked_files_verified']} locked files in {args.cache / 'locked'}")
+            print(f"Verified {result['locked_files_verified']} locked upstream files in {args.cache / 'locked'} ({result['verified_pins']} pins including vendored seed)")
         if args.check:
             for source in report["sources"]:
                 print(f"{source['name']}: {len(source['files'])} changed files ({source['locked_commit'][:12]} -> {source['latest_commit'][:12]})")

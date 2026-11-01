@@ -7,16 +7,23 @@ popup list. Paywall/state-reset filtering and navigation cleanup have moved to
 separate optional subscriptions. Import those below if you want to keep those
 features. They are not enabled automatically.
 
+**This repository is private.** Its raw URLs return 404 to unauthenticated
+clients, so the Subscribe links below require an accessible public mirror before
+uBlock can update them automatically. For use now, open the chosen `.txt` file in
+GitHub and copy its filter text into uBlock's dashboard → My filters → Apply
+changes. Manual copies must be updated manually. Repository visibility has not
+been changed by this maintenance work.
+
 | Subscription | What it changes | Install |
 | --- | --- | --- |
 | **Core — newsletters and popups** | Newsletter prompts, email capture, surveys, promotional popups and house promos. Recommended starting point. | [Subscribe](https://subscribe.adblockplus.org/?location=https%3A%2F%2Fraw.githubusercontent.com%2Fandyhern-id%2FHobby-Stuff%2Fmain%2Fublock%2Fubo-no-bullshit-supplement.txt&title=No-Bullshit%20Supplement%20-%20Newsletters%20and%20Popups) · [Raw list](https://raw.githubusercontent.com/andyhern-id/Hobby-Stuff/main/ublock/ubo-no-bullshit-supplement.txt) |
 | **Optional — paywalls and state resets** | Paywalls, meters, forced registration and companion repairs. Resets may erase preferences or log you out; script blocking can affect site functions. | [Subscribe](https://subscribe.adblockplus.org/?location=https%3A%2F%2Fraw.githubusercontent.com%2Fandyhern-id%2FHobby-Stuff%2Fmain%2Fublock%2Fubo-no-bullshit-paywalls.txt&title=No-Bullshit%20Supplement%20-%20Optional%20Paywalls) · [Raw list](https://raw.githubusercontent.com/andyhern-id/Hobby-Stuff/main/ublock/ubo-no-bullshit-paywalls.txt) |
 | **Optional — interface cleanup** | Back-to-top/scroll controls, RSS widgets and selected membership triggers. Can hide useful navigation and account-access controls. | [Subscribe](https://subscribe.adblockplus.org/?location=https%3A%2F%2Fraw.githubusercontent.com%2Fandyhern-id%2FHobby-Stuff%2Fmain%2Fublock%2Fubo-no-bullshit-interface.txt&title=No-Bullshit%20Supplement%20-%20Optional%20Interface%20Cleanup) · [Raw list](https://raw.githubusercontent.com/andyhern-id/Hobby-Stuff/main/ublock/ubo-no-bullshit-interface.txt) |
 
-Subscribe links are the preferred Firefox installation path. uBlock Origin
-recognizes subscription links clicked on GitHub and asks you to confirm the list.
-For manual installation, import the chosen Raw list URL in uBlock's dashboard →
-Filter lists → Custom → Import, then apply changes.
+When hosted at publicly reachable URLs, Subscribe links are the preferred Firefox
+installation path. uBlock Origin recognizes subscription links clicked on GitHub
+and asks you to confirm the list. For a public mirror, update the links' location
+URLs, or import the mirror's raw URL in Filter lists → Custom → Import.
 
 ### Requirements and behavior
 

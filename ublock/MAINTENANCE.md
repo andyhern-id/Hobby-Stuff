@@ -55,6 +55,11 @@ all four checksums before import. After the cache is populated, use
 parser tests accept `UBO_PARSER_CACHE=DIR` and `UBO_PARSER_OFFLINE=1`. A checksum
 mismatch is an error; verify the source/lock before deleting a corrupt cache.
 
+The repository is private. The seed is verified from its included local copy;
+`--download` never requests a private raw seed URL. It verifies 13 public upstream
+files plus that local seed (14 pins total). Automatic uBlock subscriptions require
+publicly reachable hosting; manual installation is documented in README.md.
+
 Counts describe non-comment entries. The parser separately reports enabled rules
 and conditional skips. Neither establishes effective engine counts or live-site
 behavior, and syntax checks do not validate scriptlet names/arguments at runtime.

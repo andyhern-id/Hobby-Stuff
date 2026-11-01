@@ -51,6 +51,8 @@ This is a reproducible build of a maintained seed plus reviewed policy, not a
 reconstruction of the missing August generator. Original BPC input and live-site
 verification remain limitations. A clean parser or audit does not prove runtime
 scriptlet behavior, arbitrary filter equivalence or absence of page breakage.
+The repository is private, so anonymous raw subscription fetching returns 404;
+manual installation is documented pending an accessible hosting destination.
 
 ## Earlier Mashable correction — 1 November 2026
 

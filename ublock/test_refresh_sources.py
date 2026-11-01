@@ -179,6 +179,33 @@ class RefreshSourceTests(unittest.TestCase):
         self.assertEqual(2, result)
         self.assertIn("Digest mismatch", stderr.getvalue())
 
+    def test_cli_download_verifies_local_seed_before_network(self) -> None:
+        (self.root / "sources/seed.txt").write_bytes(NEW)
+        with patch.object(refresh, "fetch_bytes", side_effect=AssertionError("network")) as fetch:
+            with contextlib.redirect_stderr(io.StringIO()) as stderr:
+                result = refresh.main(["--lock", str(self.lock_path), "--cache", str(self.root / "fresh"), "--download"])
+        self.assertEqual(2, result)
+        self.assertIn("Digest mismatch", stderr.getvalue())
+        fetch.assert_not_called()
+
+    def test_cli_download_fetches_only_upstreams_and_counts_local_seed(self) -> None:
+        lock_before = self.lock_path.read_bytes()
+        def download(url: str) -> bytes:
+            self.assertIn("/owner/baseline/", url)
+            self.assertNotIn("/owner/repo/", url)
+            return OLD
+        with patch.object(refresh, "fetch_bytes", side_effect=download) as fetch:
+            with contextlib.redirect_stdout(io.StringIO()) as stdout:
+                result = refresh.main(["--lock", str(self.lock_path), "--cache", str(self.root / "fresh"), "--download", "--json"])
+        report = json.loads(stdout.getvalue())
+        self.assertEqual(0, result)
+        self.assertEqual(1, report["locked_files_verified"])
+        self.assertEqual(2, report["verified_pins"])
+        self.assertIn("seed_verified", report)
+        self.assertEqual(1, fetch.call_count)
+        self.assertEqual(lock_before, self.lock_path.read_bytes())
+        self.assertEqual(OLD, (self.root / "sources/seed.txt").read_bytes())
+
 
 if __name__ == "__main__":
     unittest.main()
