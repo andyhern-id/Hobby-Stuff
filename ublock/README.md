@@ -2,28 +2,63 @@
 
 ## No-Bullshit uBlock Origin Supplement
 
-[**Subscribe in uBlock Origin**](https://subscribe.adblockplus.org/?location=https%3A%2F%2Fraw.githubusercontent.com%2Fandyhern-id%2FHobby-Stuff%2Fmain%2Fublock%2Fubo-no-bullshit-supplement.txt&title=No-Bullshit%20uBlock%20Origin%20Supplement)
+**Existing subscribers:** the original URL now supplies the core newsletter and
+popup list. Paywall/state-reset filtering and navigation cleanup have moved to
+separate optional subscriptions. Import those below if you want to keep those
+features. They are not enabled automatically.
 
-The button above is the preferred Firefox installation path. uBlock Origin
-recognizes subscription links clicked on GitHub and will ask you to confirm the
-custom list.
+| Subscription | What it changes | Install |
+| --- | --- | --- |
+| **Core — newsletters and popups** | Newsletter prompts, email capture, surveys, promotional popups and house promos. Recommended starting point. | [Subscribe](https://subscribe.adblockplus.org/?location=https%3A%2F%2Fraw.githubusercontent.com%2Fandyhern-id%2FHobby-Stuff%2Fmain%2Fublock%2Fubo-no-bullshit-supplement.txt&title=No-Bullshit%20Supplement%20-%20Newsletters%20and%20Popups) · [Raw list](https://raw.githubusercontent.com/andyhern-id/Hobby-Stuff/main/ublock/ubo-no-bullshit-supplement.txt) |
+| **Optional — paywalls and state resets** | Paywalls, meters, forced registration and companion repairs. Resets may erase preferences or log you out; script blocking can affect site functions. | [Subscribe](https://subscribe.adblockplus.org/?location=https%3A%2F%2Fraw.githubusercontent.com%2Fandyhern-id%2FHobby-Stuff%2Fmain%2Fublock%2Fubo-no-bullshit-paywalls.txt&title=No-Bullshit%20Supplement%20-%20Optional%20Paywalls) · [Raw list](https://raw.githubusercontent.com/andyhern-id/Hobby-Stuff/main/ublock/ubo-no-bullshit-paywalls.txt) |
+| **Optional — interface cleanup** | Back-to-top/scroll controls, RSS widgets and selected membership triggers. Can hide useful navigation and account-access controls. | [Subscribe](https://subscribe.adblockplus.org/?location=https%3A%2F%2Fraw.githubusercontent.com%2Fandyhern-id%2FHobby-Stuff%2Fmain%2Fublock%2Fubo-no-bullshit-interface.txt&title=No-Bullshit%20Supplement%20-%20Optional%20Interface%20Cleanup) · [Raw list](https://raw.githubusercontent.com/andyhern-id/Hobby-Stuff/main/ublock/ubo-no-bullshit-interface.txt) |
 
-- [Raw filter list](https://raw.githubusercontent.com/andyhern-id/Hobby-Stuff/main/ublock/ubo-no-bullshit-supplement.txt)
-- [Audit and methodology](./UBO_SUPPLEMENT_AUDIT.md)
-- [Audit checker](./audit_filters.py)
-- [Mashable regression tests](./test_mashable_filters.py) — run from the repository
-  root with `python3 -m unittest discover -s ublock -p 'test_*.py' -v`.
+Subscribe links are the preferred Firefox installation path. uBlock Origin
+recognizes subscription links clicked on GitHub and asks you to confirm the list.
+For manual installation, import the chosen Raw list URL in uBlock's dashboard →
+Filter lists → Custom → Import, then apply changes.
 
-### Requirements
+### Requirements and behavior
 
-- Full uBlock Origin, preferably Firefox. uBlock Origin Lite and other blockers
-  do not support every advanced scriptlet in this list.
-- Keep **uBlock filters – Quick fixes** enabled for current YouTube video-ad
-  countermeasures.
-- Do not also enable the complete Bypass Paywalls Clean, EasyList Annoyances,
-  or EasyList Newsletter lists; this supplement is generated from their
-  baseline-differenced rules.
+- Use **full uBlock Origin**, preferably Firefox. Other blockers and uBlock Origin
+  Lite do not support every advanced rule in these lists.
+- Keep uBlock's default filters and **uBlock filters – Quick fixes** enabled for
+  maintained YouTube countermeasures.
+- These lists supplement [yokoffing/filterlists](https://github.com/yokoffing/filterlists).
+  Do not also enable the full BPC, EasyList Annoyances or EasyList Newsletter
+  source lists; those include rules deliberately omitted here.
+- Optional lists can be enabled independently. No generated rule is duplicated
+  across these three subscriptions.
+- Core is still opinionated: it hides newsletter forms and some social, chat and
+  promotional UI, and can set site-specific popup-dismissal preferences.
+- Filters cannot recover article text the publisher never sent to the browser.
 
-This list is aggressive. It can hide newsletter forms, surveys, chat widgets,
-social clutter, and client-side paywall overlays, and paywall cookie rules may
-log you out. It cannot recover article text a server never delivered.
+### Maintenance and validation
+
+The hardening release fixes confirmed syntax/scope mistakes, quarantines reviewed
+broad selectors, and keeps related paywall repairs together in the optional list.
+Reviewed editorial corrections/disclosures, whole-form wrappers and unverified
+layout-container targets are no longer hidden by these lists. Reasons are recorded
+in [filter-policy.json](./filter-policy.json).
+
+- [Current and historical audit](./UBO_SUPPLEMENT_AUDIT.md)
+- [Rebuild, validation and upstream review instructions](./MAINTENANCE.md)
+- [Overlap checker](./audit_filters.py) and [uBlock syntax validator](./validate_filters.mjs)
+
+From the repository root, with Python 3.10+ and Node 20+:
+
+```bash
+python3 ublock/build_filters.py --check
+python3 -m unittest discover -s ublock -p 'test_*.py' -v
+node --test ublock/test_validate_filters.mjs
+node ublock/validate_filters.mjs
+```
+
+The first parser run downloads four pinned official modules and verifies their
+checksums. CI runs validation on changes. A separate weekly workflow produces
+upstream diffs for review; it never publishes changed filters itself.
+
+Daily subscription refreshes retrieve the latest published snapshot. They do not
+automatically import upstream changes. Passing checks do not guarantee live-site
+behavior; historical BPC source and browser-testing limits are documented in
+[MAINTENANCE.md](./MAINTENANCE.md).

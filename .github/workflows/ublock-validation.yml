@@ -1,0 +1,46 @@
+name: uBlock subscription validation
+
+on:
+  push:
+    paths:
+      - 'ublock/**'
+      - '.github/workflows/ublock-*.yml'
+  pull_request:
+    paths:
+      - 'ublock/**'
+      - '.github/workflows/ublock-*.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+      - name: Verify deterministic builds and pinned sources
+        run: |
+          python3 ublock/build_filters.py --check
+          python3 ublock/refresh_sources.py --verify-seed --download
+      - name: Python regression tests
+        run: python3 -m unittest discover -s ublock -p 'test_*.py' -v
+      - name: Audit every subscription against the pinned baseline
+        shell: bash
+        run: |
+          baseline_commit=$(python3 -c 'import json; print(next(s["commit"] for s in json.load(open("ublock/sources.lock.json"))["upstreams"] if s["role"] == "baseline"))')
+          for list_path in ublock/ubo-no-bullshit-*.txt; do
+            python3 ublock/audit_filters.py "$list_path" "ublock/.cache/sources/locked/yokoffing/$baseline_commit"
+          done
+      - name: Parser regression tests
+        run: node --test ublock/test_validate_filters.mjs
+      - name: Validate enabled rules in both browser profiles
+        run: |
+          node ublock/validate_filters.mjs --env firefox
+          node ublock/validate_filters.mjs --env chromium

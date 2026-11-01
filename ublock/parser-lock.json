@@ -1,0 +1,11 @@
+{
+  "repository": "gorhill/uBlock",
+  "commit": "b886738cfba506e55131ae694c4be56795a1f95f",
+  "description": "Official uBlock Origin parser and its direct dependencies; SHA-256 values cover downloaded UTF-8 bytes. No upstream code is vendored.",
+  "files": {
+    "src/js/static-filtering-parser.js": "f989e66719b89d86015024a3c2a01316e2bd86a3c4cf8e90c6ab0a9f32765173",
+    "src/js/arglist-parser.js": "57dbdf89705f59d79bb20189c8b1c784ea4105323d0bcd07eec74e818cc8c106",
+    "src/js/jsonpath.js": "5f5da491932c276598c1cc1a724b2b8d353b3f74a9a37e08004c1f52b6657723",
+    "src/lib/csstree/css-tree.js": "ecc4507fac946cbe442962e11bb058195dbe72545cce42f34338a83726ec56e0"
+  }
+}

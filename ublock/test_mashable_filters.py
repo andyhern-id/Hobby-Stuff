@@ -1,10 +1,10 @@
-"""Static regressions for Mashable's October 2026 site-break correction.
+"""Configuration regressions for Mashable's October 2026 site-break correction.
 
 Upstream disabled two rules (six selector arms) in:
 https://github.com/yokoffing/filterlists/commit/4e17e52627486f7e2e96fa43cd78b26bd173c260
 
-These checks protect the supplement's filter configuration. They do not replace
-live-page testing with uBlock Origin or prove arbitrary CSS equivalence.
+These checks cover the published subscriptions, including optional lists. They do
+not replace live-page testing or prove arbitrary CSS/hostname-regex equivalence.
 """
 
 from __future__ import annotations
@@ -13,10 +13,16 @@ import re
 import unittest
 from pathlib import Path
 
-from audit_filters import cosmetics, read_filter
+from audit_filters import active_rules, cosmetics, domain_applies, read_filter
 
 
-SUPPLEMENT = Path(__file__).with_name("ubo-no-bullshit-supplement.txt")
+ROOT = Path(__file__).parent
+SUPPLEMENT = ROOT / "ubo-no-bullshit-supplement.txt"
+PUBLISHED = (
+    SUPPLEMENT,
+    ROOT / "ubo-no-bullshit-paywalls.txt",
+    ROOT / "ubo-no-bullshit-interface.txt",
+)
 DISABLED_UPSTREAM_SELECTORS = {
     r".bg-warmgray-100.items-end.md\:flex-row.flex-col.flex.overflow-hidden.relative.px-4.mx-auto.mt-12.max-w-9xl",
     r".md\:mb-16.md\:mt-12.mb-12.mt-8.font-sans.text-primary-400.max-w-3xl.mx-auto.w-full",
@@ -35,57 +41,69 @@ PRESERVED_TARGETS = {
 }
 
 
-def mashable_hiding_targets(rules: list[str]) -> set[tuple[str, str]]:
-    """Read active hiding rules applicable to mashable.com, including grouped rules."""
+def mashable_hiding_targets(lines: list[str]) -> set[tuple[str, str]]:
+    """Return hiding targets that apply to Mashable or explicit subdomains."""
     targets: set[tuple[str, str]] = set()
-    for rule in rules:
+    for rule in active_rules(lines):
         parsed = cosmetics(rule)
         if parsed is None:
             continue
         marker, domains, selectors = parsed
         if marker not in ("##", "#?#"):
             continue
-        if "~mashable.com" in domains or "~com" in domains:
-            continue
-        included = [domain for domain in domains if not domain.startswith("~")]
-        if included and not {"*", "com", "mashable.com"}.intersection(included):
-            continue
-        targets.update((marker, selector) for selector in selectors)
+        hostnames = {"mashable.com", "www.mashable.com"}
+        hostnames.update(
+            domain for domain in domains
+            if domain.endswith(".mashable.com") and not domain.startswith("~")
+        )
+        if any(domain_applies(host, domains, entity="mashable") for host in hostnames):
+            targets.update((marker, selector) for selector in selectors)
     return targets
 
 
+def unsafe_mashable_selectors(lines: list[str]) -> set[str]:
+    return {
+        selector
+        for _, selector in mashable_hiding_targets(lines)
+        if selector in DISABLED_UPSTREAM_SELECTORS
+        or re.search(r"(?<!\\)\.max-w-9xl(?![\w-])", selector)
+    }
+
+
 class MashableFilterRegressionTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls.lines, cls.rules = read_filter(SUPPLEMENT)
-        cls.targets = mashable_hiding_targets(cls.rules)
+    def test_unsafe_selectors_absent_from_every_subscription(self) -> None:
+        for path in PUBLISHED:
+            with self.subTest(subscription=path.name):
+                lines, _ = read_filter(path)
+                self.assertEqual(set(), unsafe_mashable_selectors(lines))
 
-    def test_no_max_w_9xl_hiding_on_mashable(self) -> None:
-        # Also rejects the class within compound or comma-separated selectors.
-        # Replacing the broad rule with upstream's disabled compound is unsafe.
-        offenders = sorted(
-            selector
-            for _, selector in self.targets
-            if re.search(r"(?<!\\)\.max-w-9xl(?![\w-])", selector)
+    def test_targeted_filters_remain_in_core(self) -> None:
+        lines, _ = read_filter(SUPPLEMENT)
+        self.assertLessEqual(PRESERVED_TARGETS, mashable_hiding_targets(lines))
+
+    def test_mutations_detect_host_entity_regex_and_grouped_rules(self) -> None:
+        domains = (
+            "mashable.com", "www.mashable.com", "news.mashable.com", "com", "",
+            "other.example,mashable.com", "mashable.*", "other.example,mashable.*",
+            r"/^mashable\.com$/", "~other.example",
         )
-        self.assertEqual([], offenders, "Mashable layout class must not be hidden")
+        for domain in domains:
+            for selector in DISABLED_UPSTREAM_SELECTORS | {".max-w-9xl"}:
+                with self.subTest(domain=domain, selector=selector):
+                    rule = f"{domain}##.unrelated, {selector}"
+                    self.assertIn(selector, unsafe_mashable_selectors([rule]))
 
-    def test_upstream_disabled_selectors_stay_disabled(self) -> None:
-        selectors = {selector for _, selector in self.targets}
-        self.assertEqual(set(), selectors & DISABLED_UPSTREAM_SELECTORS)
-
-    def test_existing_targeted_filters_are_preserved(self) -> None:
-        for target in sorted(PRESERVED_TARGETS):
-            with self.subTest(target=target):
-                self.assertIn(target, self.targets)
-
-    def test_active_rule_count_matches_header(self) -> None:
-        counts = [
-            int(match.group(1))
-            for line in self.lines
-            if (match := re.fullmatch(r"! Active rules in this supplement: (\d+)", line))
+    def test_comments_exclusions_and_unrelated_domains_are_not_false_positives(self) -> None:
+        lines = [
+            "! mashable.com##.max-w-9xl",
+            "other.example##.max-w-9xl",
+            "~mashable.com##.max-w-9xl",
+            "com,~mashable.*##.max-w-9xl",
+            r"/^other\.example$/##.max-w-9xl",
+            "mashable.com#@#.max-w-9xl",
+            "mashable.com##.max-w-9xl-card",
         ]
-        self.assertEqual([len(self.rules)], counts)
+        self.assertEqual(set(), unsafe_mashable_selectors(lines))
 
 
 if __name__ == "__main__":

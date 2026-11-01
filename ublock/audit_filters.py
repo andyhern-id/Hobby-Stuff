@@ -5,7 +5,9 @@ Checks:
 - internal exact duplicates
 - exact overlaps with the baseline
 - normalized network-filter overlaps (option aliases/order)
-- cosmetic domain+selector target overlaps
+- cosmetic same-selector scope coverage (plain parent domains and identical entities)
+- generic scriptlets that uBlock Origin ignores
+- declared active-rule counts, when present
 - preprocessor !#if/!#else/!#endif balance
 
 This is deliberately conservative. Arbitrary network-filter subsumption with
@@ -16,6 +18,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 from collections import Counter
@@ -114,6 +117,133 @@ def cosmetic_targets(rule: str) -> set[str]:
     }
 
 
+def domain_applies(
+    hostname: str, domains: Iterable[str], *, entity: str | None = None
+) -> bool:
+    """Match a known hostname against an extended-filter domain list.
+
+    Plain hostname expressions include subdomains; exclusions take precedence.
+    Supply the known uBO entity (for example ``mashable`` for mashable.com) to
+    evaluate entity expressions. We deliberately do not guess registrable domains
+    without a Public Suffix List. Regex expressions use Python's regex dialect;
+    unsupported expressions fail closed and are not a uBO-equivalence proof.
+    """
+    hostname = hostname.lower().rstrip(".")
+    values = list(domains)
+
+    def matches(expression: str) -> bool:
+        if expression == "*":
+            return True
+        if expression.startswith("/") and expression.endswith("/"):
+            try:
+                return re.search(expression[1:-1], hostname) is not None
+            except re.error:
+                return False
+        expression = expression.lower().rstrip(".")
+        if expression.endswith(".*"):
+            if entity is None:
+                return False
+            stem = expression[:-2]
+            return entity.lower() == stem or entity.lower().endswith("." + stem)
+        return hostname == expression or hostname.endswith("." + expression)
+
+    if any(matches(value[1:]) for value in values if value.startswith("~")):
+        return False
+    positive = [value for value in values if not value.startswith("~")]
+    return not positive or any(matches(value) for value in positive)
+
+
+def _plain_domain(value: str) -> bool:
+    return re.fullmatch(r"[a-z0-9_-]+(?:\.[a-z0-9_-]+)*", value, re.I) is not None
+
+
+def _expression_covers(container: str, subject: str) -> bool:
+    """Prove domain-set inclusion only for cases understood without a PSL."""
+    if container == "*" or container == subject:
+        return True
+    if _plain_domain(container) and _plain_domain(subject):
+        return subject.endswith("." + container)
+    return False
+
+
+def _expressions_may_intersect(left: str, right: str) -> bool:
+    if left == "*" or right == "*" or left == right:
+        return True
+    if _plain_domain(left) and _plain_domain(right):
+        return left.endswith("." + right) or right.endswith("." + left)
+    # Unknown entity/regex intersections must prevent a false coverage claim.
+    return True
+
+
+def _scope_covers_target(
+    baseline_domains: list[str], domain: str, supplement_exclusions: list[str]
+) -> bool:
+    positive = [value for value in baseline_domains if not value.startswith("~")]
+    excluded = [value[1:] for value in baseline_domains if value.startswith("~")]
+    if not any(_expression_covers(value, domain) for value in (positive or ["*"])):
+        return False
+    for exclusion in excluded:
+        if not _expressions_may_intersect(domain, exclusion):
+            continue
+        if not any(_expression_covers(value, exclusion) for value in supplement_exclusions):
+            return False
+    return True
+
+
+def covered_cosmetic_targets(
+    supplement_rules: Iterable[str], baseline_rules: Iterable[str]
+) -> list[str]:
+    """Find identical selectors whose supplement domain scope is covered.
+
+    This proves only the supported domain cases, honors exclusions, and does not
+    compare different CSS selectors or infer regex/entity intersections.
+    """
+    baseline_by_selector: dict[tuple[str, str], list[list[str]]] = {}
+    for rule in baseline_rules:
+        parsed = cosmetics(rule)
+        if parsed is None:
+            continue
+        marker, domains, selectors = parsed
+        for selector in selectors:
+            baseline_by_selector.setdefault((marker, selector), []).append(domains)
+    overlaps: set[str] = set()
+    for rule in supplement_rules:
+        parsed = cosmetics(rule)
+        if parsed is None:
+            continue
+        marker, domains, selectors = parsed
+        positive = [value for value in domains if not value.startswith("~")]
+        excluded = [value[1:] for value in domains if value.startswith("~")]
+        for domain in positive or ["*"]:
+            for selector in selectors:
+                candidates = baseline_by_selector.get((marker, selector), [])
+                if any(_scope_covers_target(candidate, domain, excluded) for candidate in candidates):
+                    overlaps.add(f"C:{marker}:{domain}:{selector}")
+    return sorted(overlaps)
+
+
+def generic_scriptlets(rules: Iterable[str]) -> list[str]:
+    ignored: list[str] = []
+    for rule in rules:
+        parsed = cosmetics(rule)
+        if parsed is None:
+            continue
+        marker, domains, selectors = parsed
+        if marker != "##" or not any(value.startswith("+js(") for value in selectors):
+            continue
+        if not any(value != "*" and not value.startswith("~") for value in domains):
+            ignored.append(rule)
+    return sorted(ignored)
+
+
+def check_count_header(lines: list[str], count: int) -> list[str]:
+    headers = [line for line in lines if line.startswith("! Active rules in this supplement:")]
+    if not headers:
+        return []
+    expected = f"! Active rules in this supplement: {count}"
+    return [] if headers == [expected] else [f"expected exactly one {expected!r} header"]
+
+
 def canonical_network(rule: str) -> str:
     option_index = -1
     for index in range(len(rule) - 1, -1, -1):
@@ -161,35 +291,48 @@ def read_filter(path: Path) -> tuple[list[str], list[str]]:
 
 
 def baseline_files(path: Path) -> list[Path]:
+    if not path.exists():
+        raise ValueError(f"baseline does not exist: {path}")
     if path.is_file():
         return [path]
+    if not path.is_dir():
+        raise ValueError(f"baseline is not a file or directory: {path}")
     files: list[Path] = []
-    for candidate in sorted(path.rglob("*")):
-        if not candidate.is_file():
-            continue
-        if candidate.name.lower() == "readme.md":
-            continue
-        if candidate.suffix.lower() in ("", ".txt"):
-            files.append(candidate)
-    return files
+    for directory, subdirectories, names in os.walk(path):
+        subdirectories[:] = sorted(name for name in subdirectories if not name.startswith("."))
+        for name in sorted(names):
+            candidate = Path(directory) / name
+            if name.startswith(".") or not candidate.is_file():
+                continue
+            if candidate.suffix.lower() in ("", ".txt"):
+                files.append(candidate)
+    if not files:
+        raise ValueError(f"baseline contains no filter files: {path}")
+    return sorted(files)
 
 
 def check_preprocessor(lines: list[str]) -> list[str]:
     errors: list[str] = []
-    stack: list[int] = []
+    stack: list[tuple[int, bool]] = []
     for line_number, raw in enumerate(lines, 1):
         line = raw.strip()
-        if line.startswith("!#if"):
-            stack.append(line_number)
-        elif line.startswith("!#else"):
+        if re.match(r"^!#if(?:\s|$)", line):
+            if line == "!#if":
+                errors.append(f"line {line_number}: !#if without condition")
+            stack.append((line_number, False))
+        elif re.match(r"^!#else(?:\s|$)", line):
             if not stack:
                 errors.append(f"line {line_number}: !#else without !#if")
-        elif line.startswith("!#endif"):
+            elif stack[-1][1]:
+                errors.append(f"line {line_number}: duplicate !#else")
+            else:
+                stack[-1] = (stack[-1][0], True)
+        elif re.match(r"^!#endif(?:\s|$)", line):
             if not stack:
                 errors.append(f"line {line_number}: !#endif without !#if")
             else:
                 stack.pop()
-    errors.extend(f"line {line_number}: unclosed !#if" for line_number in stack)
+    errors.extend(f"line {line_number}: unclosed !#if" for line_number, _ in stack)
     return errors
 
 
@@ -204,6 +347,8 @@ def summarize(supplement: Path, baseline: Path | None) -> dict[str, object]:
         "unique_active_rules": len(counts),
         "internal_exact_duplicates": internal_duplicates,
         "preprocessor_errors": check_preprocessor(supplement_lines),
+        "generic_scriptlets": generic_scriptlets(supplement_rules),
+        "header_errors": check_count_header(supplement_lines, len(supplement_rules)),
     }
 
     if baseline is None:
@@ -214,22 +359,18 @@ def summarize(supplement: Path, baseline: Path | None) -> dict[str, object]:
     for file in files:
         _, rules = read_filter(file)
         baseline_rules.extend(rules)
+    if not baseline_rules:
+        raise ValueError(f"baseline contains no active rules: {baseline}")
 
     baseline_exact = set(baseline_rules)
     baseline_canonical = {canonical(rule) for rule in baseline_rules}
-    baseline_cosmetic = set().union(*(cosmetic_targets(rule) for rule in baseline_rules))
 
     exact_overlap = sorted(set(supplement_rules) & baseline_exact)
     normalized_overlap = sorted(
         rule for rule in set(supplement_rules)
         if canonical(rule) in baseline_canonical and rule not in baseline_exact
     )
-    cosmetic_overlap = sorted(
-        target
-        for rule in supplement_rules
-        for target in cosmetic_targets(rule)
-        if target in baseline_cosmetic
-    )
+    cosmetic_overlap = covered_cosmetic_targets(supplement_rules, baseline_rules)
 
     result.update({
         "baseline": str(baseline),
@@ -254,10 +395,20 @@ def main() -> int:
     parser.add_argument("--json", action="store_true", dest="as_json")
     args = parser.parse_args()
 
-    report = summarize(args.supplement, args.baseline)
+    try:
+        report = summarize(args.supplement, args.baseline)
+    except (OSError, UnicodeError, ValueError) as error:
+        message = f"Audit input error: {error}"
+        if args.as_json:
+            print(json.dumps({"error": message}))
+        else:
+            print(message, file=sys.stderr)
+        return 2
     failures = (
         report["internal_exact_duplicates"]
         or report["preprocessor_errors"]
+        or report["generic_scriptlets"]
+        or report["header_errors"]
         or report.get("exact_baseline_overlaps")
         or report.get("normalized_baseline_overlaps")
         or report.get("cosmetic_target_overlaps")
@@ -273,6 +424,8 @@ def main() -> int:
         for key in (
             "internal_exact_duplicates",
             "preprocessor_errors",
+            "generic_scriptlets",
+            "header_errors",
             "exact_baseline_overlaps",
             "normalized_baseline_overlaps",
             "cosmetic_target_overlaps",
