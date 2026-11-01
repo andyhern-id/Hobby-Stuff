@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "seed": {
+    "repository": "andyhern-id/Hobby-Stuff",
+    "commit": "c3bbd28465392e410ec3c77a7f9595ebc5e1b550",
+    "path": "ublock/ubo-no-bullshit-supplement.txt",
+    "local_path": "sources/seed.txt",
+    "sha256": "aaa4a8a25408c5ff3ac851a7d4ee5987c49e2238914882e2c13f83ad881fd972",
+    "git_blob_sha": "500de5b244e40cc00bac08127f35413f40c44631",
+    "role": "Published maintenance seed, including historical baseline differencing and manual scope edits."
+  },
+  "upstreams": [
+    {
+      "name": "yokoffing",
+      "role": "baseline",
+      "repository": "yokoffing/filterlists",
+      "tracking_ref": "main",
+      "commit": "4e17e52627486f7e2e96fa43cd78b26bd173c260",
+      "discover_root_filters": true,
+      "files": [
+        {
+          "path": "adult_annoyance_list.txt",
+          "sha256": "a8ebb8fc5bed57efcb3c0a3ef21c0e691c6fe9c33d900d2dc022d52445158dde",
+          "git_blob_sha": "5b7d09bd1051aa5a71abcea1e3d3c4ac8e54c4c0"
+        },
+        {
+          "path": "annoyance_list.txt",
+          "sha256": "f65542c4ee26e41ac60c49445b8e9bae1aa9d94dbe8f7b7a5447ba4e382c90ee",
+          "git_blob_sha": "2c43cec0dae290e1d00c1cb7a46aedf9ba14a0a1"
+        },
+        {
+          "path": "antipaywall_filters_without_element_hiding.txt",
+          "sha256": "0853d3a3baa9e2b16c89595af5d6332e2b7b02649a3a44868b3524ddd73eddaf",
+          "git_blob_sha": "7e5156decc971878b17d38601f42c9bb1e9c07f1"
+        },
+        {
+          "path": "block_third_party_fonts.txt",
+          "sha256": "2c7c6b840fbeaa8ad96cc506f92143ad46ada5de89f7bff777127acee50970da",
+          "git_blob_sha": "2717707183ea752b16cbaa5c1f3230c616638f2f"
+        },
+        {
+          "path": "clean_reading_experience.txt",
+          "sha256": "02dc2420c7e9c7a502da8331dc8d5bc36b6cb536cbd2a3e76c92790eba07d1f1",
+          "git_blob_sha": "4e2dbecfa1df4107e5f2edd856b4744dd139c5ab"
+        },
+        {
+          "path": "click2load.txt",
+          "sha256": "50d7b900dfcb3079d616bafc849f151aa9ca6ae2b303839ca49b01cbedd223a2",
+          "git_blob_sha": "28e6e54244f8442503ec638f2109fa9caf04af6b"
+        },
+        {
+          "path": "combined_annoyances_without_element_hiding",
+          "sha256": "0abe5d98d81b2783baef68a46d2b3de79e619f211384daebb37e372110e50993",
+          "git_blob_sha": "367d5b5687c0c1acc3ab1c8cbd5a5bfa95a2b249"
+        },
+        {
+          "path": "enhanced_site_protection.txt",
+          "sha256": "ce81c012aff79c4a066ea725f9e916a0b45415740f2867065989bf7ef3507207",
+          "git_blob_sha": "fbd3166c033d36e63758d73d65293402e3c595b2"
+        },
+        {
+          "path": "personal.txt",
+          "sha256": "447066c3ad774794911a27e9d6e3859a240271529c5604242a4590ad1390baa2",
+          "git_blob_sha": "10c3755e2944f62bb694f4b4c80d6b0bf5bfb241"
+        },
+        {
+          "path": "privacy_essentials.txt",
+          "sha256": "b7f8b964c65dc60fa7cac6f15b3b71eb971fde465831b16835fd464d19f78faa",
+          "git_blob_sha": "98138df9555f5d66f7e79a8172c2d93f34caba39"
+        },
+        {
+          "path": "youtube_clear_view.txt",
+          "sha256": "9e971e2ceba7f9934f8d0a8cd7bef85c254ca32fccea39bc0629c6401bdaf110",
+          "git_blob_sha": "5d33aa7b2fce06fba7d51a8e336eb3ef534f3c50"
+        }
+      ]
+    },
+    {
+      "name": "easylist",
+      "role": "reviewed-source-reference",
+      "repository": "uBlockOrigin/uAssets",
+      "tracking_ref": "master",
+      "commit": "6b074b97be83031cfdf9186165007e246a4a8a10",
+      "discover_root_filters": false,
+      "files": [
+        {
+          "path": "thirdparties/easylist/easylist-annoyances.txt",
+          "sha256": "c0e6173a0290fa911abb4573a146a34833504d6051569fa5a2faa8caa854ee2c",
+          "git_blob_sha": "2a1f24cc982f911674bef346e70a13aae3eea24a"
+        },
+        {
+          "path": "thirdparties/easylist/easylist-newsletters.txt",
+          "sha256": "4f184f1b58a5879cd0eeff3d553aa3c95ccbfb77952b1092655838555a1f39b9",
+          "git_blob_sha": "ff99203c8a8d74543c34b201a5cdd25bd461ca9c"
+        }
+      ]
+    }
+  ],
+  "legacy_provenance": {
+    "generated_date": "2026-08-22",
+    "original_baseline_commit": "80d1341d220a773424a4644a2b52eb62a94b1b8f",
+    "original_manual_scope_edits": 24,
+    "bpc": {
+      "version": "4.4.2.1",
+      "project_url": "https://gitflic.ru/project/magnolia1234/bypass-paywalls-clean-filters",
+      "license": "MIT",
+      "immutable_input_available": false
+    },
+    "limitations": [
+      "The seed preserves the published result; the original generation pipeline and 24 manual scope edits are not reconstructed.",
+      "The BPC rules are preserved in the seed, but no immutable raw BPC input was retained. This tool does not claim to refresh that source.",
+      "Upstream changes are review candidates. Downloading or checking sources never changes the seed, policy, generated subscriptions, or active lock."
+    ],
+    "easylist_inputs": {
+      "name": "easylist",
+      "role": "historical-inputs",
+      "repository": "uBlockOrigin/uAssets",
+      "tracking_ref": "master",
+      "commit": "d84f64e9662509210f76c46d59eefb2a98c9f584",
+      "discover_root_filters": false,
+      "files": [
+        {
+          "path": "thirdparties/easylist/easylist-annoyances.txt",
+          "sha256": "410392d4f4ce8b3d6c3557ca63601d7dcbec105f074a53a95430429fdab7f3e1",
+          "git_blob_sha": "5d2218e5df8e544fad301a797bfc1aa226f8b734"
+        },
+        {
+          "path": "thirdparties/easylist/easylist-newsletters.txt",
+          "sha256": "604277cf9838ecb46065ed3fd76fbeb64578ba28d469562849341a6e6fba2954",
+          "git_blob_sha": "5d9731a8418293ece4501f924aef0d2109d18e69"
+        }
+      ]
+    }
+  }
+}

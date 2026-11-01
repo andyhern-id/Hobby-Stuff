@@ -4,9 +4,59 @@ Generated on 22 August 2026 as an additive list for
 [yokoffing/filterlists](https://github.com/yokoffing/filterlists), baseline commit
 [`80d1341d220a773424a4644a2b52eb62a94b1b8f`](https://github.com/yokoffing/filterlists/commit/80d1341d220a773424a4644a2b52eb62a94b1b8f).
 
-## Maintenance correction — 1 November 2026
+## Hardening release 2026.11.01.2 — 1 November 2026
 
-The current list contains **10,062 active rules**. Removed only
+The published rules are now split into independent subscriptions:
+
+| Subscription | Active rule entries |
+| --- | ---: |
+| Core newsletters and popups, at the original URL | 8,131 |
+| Optional paywalls and state resets | 787 |
+| Optional interface cleanup | 1,080 |
+| **Total across all three** | **9,998** |
+
+The previous 10,062-entry list is preserved as the checksum-pinned maintenance
+seed. Exact policy decisions replace 44 entries and quarantine 64, with no
+independent additions. Every seed entry is accounted for, and outputs have no
+internal or cross-list exact duplicates. Related content-gate, cookie-reset and
+scroll-repair rules are routed together; newsletter-specific components remain
+in core. The original subscription does not automatically enable optional lists.
+
+Four initial corrections address the invalid Tumblr operator, the bare newsletter
+custom-element token and two NewsNation hostname scopes. The generic scriptlets,
+global consent allowances, broad layout/form/article selectors, disclosure-hiding
+rules and other reviewed risks are quarantined in [filter-policy.json](./filter-policy.json).
+Unverified narrower replacements were not invented.
+
+A live upstream comparison reviewed EasyList commit
+`6b074b97be83031cfdf9186165007e246a4a8a10`. All 50 removed seed rules have recorded
+decisions: 40 replacements and 10 quarantines (three already present in policy).
+The remaining 125 independent new source entries were deferred. The complete
+decision inventory is in [upstream-review.json](./upstream-review.json).
+
+All three outputs pass the conservative overlap audit against the eleven locked
+yokoffing files at `4e17e52627486f7e2e96fa43cd78b26bd173c260`. Syntax validation uses
+the official uBlock parser pinned at `b886738cfba506e55131ae694c4be56795a1f95f`, with
+verified module checksums, in Firefox and Chromium profiles. The optional paywall
+file has one iOS-only entry skipped by both profiles; counts above are textual
+entries, not effective engine counts.
+
+Regression coverage includes baseline input failures/hidden metadata, scope and
+exclusion handling, generator policy/accounting/condition boundaries, Mashable
+entity/regex/grouped variants, subscription routing, parser failures and verified
+source refresh candidates. CI validates changes; a weekly read-only workflow
+reports future upstream drift. See [MAINTENANCE.md](./MAINTENANCE.md) for commands.
+
+This is a reproducible build of a maintained seed plus reviewed policy, not a
+reconstruction of the missing August generator. Original BPC input and live-site
+verification remain limitations. A clean parser or audit does not prove runtime
+scriptlet behavior, arbitrary filter equivalence or absence of page breakage.
+The repository is private, so anonymous raw subscription fetching returns 404;
+manual installation is documented pending an accessible hosting destination.
+
+## Earlier Mashable correction — 1 November 2026
+
+After this first correction, the list contained **10,062 active rules**. Removed only
 `mashable.com##.max-w-9xl` after reviewing upstream's
 [`mashable site break` correction, 12 October 2026](https://github.com/yokoffing/filterlists/commit/4e17e52627486f7e2e96fa43cd78b26bd173c260).
 That commit comments out two filter lines containing six selector branches. One
@@ -30,9 +80,9 @@ python3 -m unittest discover -s ublock -p 'test_*.py' -v
 python3 ublock/audit_filters.py ublock/ubo-no-bullshit-supplement.txt
 ```
 
-This correction is based on selector overlap. Live-browser breakage has not been
-reproduced, and the complete overlap audit below has not been rerun against a newer
-upstream baseline.
+That correction was based on selector overlap and did not include live-browser
+verification. Its historical generation audit is preserved below; the new audit
+against the current locked baseline is reported in the hardening section above.
 
 ## Original generation result — 22 August 2026
 

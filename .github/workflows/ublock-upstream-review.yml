@@ -1,0 +1,37 @@
+name: uBlock upstream review
+
+on:
+  schedule:
+    - cron: '23 14 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-upstreams:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Verify source pins
+        run: python3 ublock/refresh_sources.py --verify-seed --download
+      - name: Prepare upstream changes for review
+        run: |
+          mkdir -p .cache
+          python3 ublock/refresh_sources.py --check --candidate .cache/upstream-review --json > .cache/upstream-review-result.json
+      - name: Save source diffs and proposed lock
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ublock-upstream-review
+          path: |
+            .cache/upstream-review-result.json
+            .cache/upstream-review/changes.json
+            .cache/upstream-review/sources.lock.json
+            .cache/upstream-review/upstreams/
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 30
