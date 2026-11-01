@@ -1,6 +1,6 @@
 # uBlock Origin filters
 
-## No-Bullshit uBlock Origin Supplement
+## uBlock Origin Supplement
 
 **Existing subscribers:** the original URL now supplies the core newsletter and
 popup list. Paywall/state-reset filtering and navigation cleanup have moved to
