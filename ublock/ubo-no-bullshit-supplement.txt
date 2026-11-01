@@ -1,8 +1,8 @@
 [Adblock Plus 2.0]
 ! Title: No-Bullshit uBlock Origin Supplement
 ! Description: Additive paywall, promotion, popup, survey, newsletter, and YouTube-nag cleanup.
-! Version: 2026.08.22.1
-! Last modified: 22 August 2026
+! Version: 2026.11.01.1
+! Last modified: 1 November 2026
 ! Expires: 1 day (update frequency)
 ! Syntax: uBlock Origin static filters
 ! License: GPL-3.0-or-later; https://www.gnu.org/licenses/gpl-3.0.html
@@ -10,7 +10,7 @@
 ! Baseline URL: https://github.com/yokoffing/filterlists
 ! Upstream attribution: The EasyList authors (https://easylist.to/) and magnolia1234/BPC.
 ! Generated: exact lines, normalized network equivalents, and overlapping cosmetic targets were removed.
-! Active rules in this supplement: 10063
+! Active rules in this supplement: 10062
 !
 ! IMPORTANT:
 ! - Intended for full uBlock Origin. Advanced scriptlets will not all work in uBO Lite or other blockers.
@@ -7126,7 +7126,8 @@ moneyweb.co.za##.markets-widget-content
 telegraph.co.uk##.martech-newsletter-unit
 seroundtable.com##.max-h-\[250px\]
 examiner.com.au##.max-w-7xl
-mashable.com##.max-w-9xl
+! Mashable: do not hide generic .max-w-9xl containers; overlaps upstream site-break correction.
+! https://github.com/yokoffing/filterlists/commit/4e17e52627486f7e2e96fa43cd78b26bd173c260
 decrypt.co##.max-w-prose
 joydeepdeb.com##.mb-4.card
 washingtonpost.com##.mb-lg-mod.bh.b

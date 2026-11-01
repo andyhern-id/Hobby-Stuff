@@ -4,9 +4,39 @@ Generated on 22 August 2026 as an additive list for
 [yokoffing/filterlists](https://github.com/yokoffing/filterlists), baseline commit
 [`80d1341d220a773424a4644a2b52eb62a94b1b8f`](https://github.com/yokoffing/filterlists/commit/80d1341d220a773424a4644a2b52eb62a94b1b8f).
 
-## Result
+## Maintenance correction — 1 November 2026
 
-The final list contains **10,063 active rules**:
+The current list contains **10,062 active rules**. Removed only
+`mashable.com##.max-w-9xl` after reviewing upstream's
+[`mashable site break` correction, 12 October 2026](https://github.com/yokoffing/filterlists/commit/4e17e52627486f7e2e96fa43cd78b26bd173c260).
+That commit comments out two filter lines containing six selector branches. One
+branch includes `.max-w-9xl` alongside other classes; our standalone width-class
+selector also hides every element matching that branch, plus unrelated containers.
+Removing it is safer than inventing a narrower replacement without a verified
+newsletter-specific target. The newsletter section now has 5,892 active rules.
+
+The other six Mashable rules are unchanged: the two border-class targets,
+`[aria-label="Newsletter Sign-Up"]`, the newsletter-text procedural filter,
+`.bx-impress`, and its body overflow/position repair. None uses a selector disabled
+by that upstream commit. This preserves the existing newsletter and popup filtering;
+it is not a claim that each retained rule has been validated on today's site.
+
+Focused regression tests reject the broad width selector and all six disabled
+upstream selectors, including grouped cosmetic rules, and check the six retained
+targets and active-rule count metadata. Run from the repository root:
+
+```bash
+python3 -m unittest discover -s ublock -p 'test_*.py' -v
+python3 ublock/audit_filters.py ublock/ubo-no-bullshit-supplement.txt
+```
+
+This correction is based on selector overlap. Live-browser breakage has not been
+reproduced, and the complete overlap audit below has not been rerun against a newer
+upstream baseline.
+
+## Original generation result — 22 August 2026
+
+The original list contained **10,063 active rules**:
 
 | Section | Input | Output | Exact removed | Canonical removed | Cosmetic targets removed | Manual scope edits |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |

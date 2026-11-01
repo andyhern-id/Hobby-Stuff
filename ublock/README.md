@@ -11,6 +11,8 @@ custom list.
 - [Raw filter list](https://raw.githubusercontent.com/andyhern-id/Hobby-Stuff/main/ublock/ubo-no-bullshit-supplement.txt)
 - [Audit and methodology](./UBO_SUPPLEMENT_AUDIT.md)
 - [Audit checker](./audit_filters.py)
+- [Mashable regression tests](./test_mashable_filters.py) — run from the repository
+  root with `python3 -m unittest discover -s ublock -p 'test_*.py' -v`.
 
 ### Requirements
 
